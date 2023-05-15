@@ -106,6 +106,7 @@ const updateProductsService = async (
       productRepositoryUpdated.save(productFound);
     }
   });
+  await new Promise((resolve) => setTimeout(resolve, 1000));
 
   const productsResponse = AppDataSource.getRepository(Products);
   const productsResponseToRequest = await productsResponse.find();
