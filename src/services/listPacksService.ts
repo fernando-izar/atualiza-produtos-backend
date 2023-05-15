@@ -17,6 +17,7 @@ const listPacksService = async (): Promise<IPack[]> => {
       const product1 = products?.find((p) => p.code === pack.productId);
       packsList.push({
         id: pack.packId,
+        pack_name: products?.find((p) => p.code === pack.packId)?.name,
         products: [
           {
             qty: pack.qty,

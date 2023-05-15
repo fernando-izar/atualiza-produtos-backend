@@ -12,4 +12,5 @@ export interface IProductPack {
 export interface IPack {
   id: number;
   products: IProductPack[];
+  pack_name?: string;
 }

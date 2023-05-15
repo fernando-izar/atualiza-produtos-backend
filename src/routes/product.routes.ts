@@ -7,6 +7,6 @@ import {
 const productRoutes = Router();
 
 productRoutes.get("", listProductsController);
-productRoutes.get("/validate", validateProductsController);
+productRoutes.post("/validate", validateProductsController);
 
 export default productRoutes;

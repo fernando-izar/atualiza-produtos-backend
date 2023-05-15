@@ -1,6 +1,7 @@
 import { IProduct, IProductValidated } from "../interfaces/products";
 import AppDataSource from "../data-source";
 import { Products } from "../entities/product.entity";
+import { isUndefined } from "util";
 
 const validateProductsService = async (
   productsToValidate: IProduct[]
@@ -33,14 +34,20 @@ const validateProductsService = async (
         return productValidated;
       }
 
-      if (productToValidate.sales_price <= productFound?.cost_price) {
+      if (!productToValidate.new_sales_price) {
+        productValidated.is_validated = false;
+        productValidated.broken_rules.push("Preço de venda não informado");
+        return productValidated;
+      }
+
+      if (productToValidate?.new_sales_price <= productFound?.cost_price) {
         productValidated.is_validated = false;
         productValidated.broken_rules.push(
           "Preço de venda menor ou igual ao preço de custo"
         );
       }
 
-      if (productToValidate.sales_price <= 0) {
+      if (productToValidate.new_sales_price <= 0) {
         productValidated.is_validated = false;
         productValidated.broken_rules.push(
           "Preço de venda menor ou igual a zero"
@@ -48,8 +55,8 @@ const validateProductsService = async (
       }
 
       if (
-        productToValidate.sales_price < productFound.sales_price * 0.9 ||
-        productToValidate.sales_price > productFound.sales_price * 1.1
+        productToValidate.new_sales_price < productFound.sales_price * 0.9 ||
+        productToValidate.new_sales_price > productFound.sales_price * 1.1
       ) {
         productValidated.is_validated = false;
         productValidated.broken_rules.push(

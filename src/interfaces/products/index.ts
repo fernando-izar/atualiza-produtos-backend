@@ -1,8 +1,9 @@
 export interface IProduct {
   code: number;
-  name: string;
   cost_price: number;
   sales_price: number;
+  name: string;
+  new_sales_price?: number;
 }
 
 export interface IProductValidated {
