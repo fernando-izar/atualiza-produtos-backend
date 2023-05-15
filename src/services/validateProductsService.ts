@@ -1,7 +1,6 @@
 import { IProduct, IProductValidated } from "../interfaces/products";
 import AppDataSource from "../data-source";
 import { Products } from "../entities/product.entity";
-import { isUndefined } from "util";
 
 const validateProductsService = async (
   productsToValidate: IProduct[]

@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import { IProduct, IProductValidated } from "../interfaces/products";
 import listProductsService from "../services/listProductsService";
 import validateProductsService from "../services/validateProductsService";
+import updateProductsService from "../services/updateProductsService";
 
 export const listProductsController = async (req: Request, res: Response) => {
   const products = await listProductsService();
@@ -23,6 +24,18 @@ export const validateProductsController = async (
       (p) => p.is_validated === true
     );
     return res.json({ is_validated, productsValidated });
+  } catch (error) {
+    return res.status(500).json({ error });
+  }
+};
+
+export const updateProductsController = async (req: Request, res: Response) => {
+  try {
+    const productsToUpdate: IProduct[] = req.body;
+    const productsUpdated: IProduct[] = await updateProductsService(
+      productsToUpdate
+    );
+    return res.json(productsUpdated);
   } catch (error) {
     return res.status(500).json({ error });
   }
