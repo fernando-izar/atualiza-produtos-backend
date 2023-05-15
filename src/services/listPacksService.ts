@@ -14,19 +14,28 @@ const listPacksService = async (): Promise<IPack[]> => {
   packs.forEach((pack) => {
     const packIndex = packsList.findIndex((p) => p.id === pack.packId);
     if (packIndex === -1) {
+      const product1 = products?.find((p) => p.code === pack.productId);
       packsList.push({
         id: pack.packId,
+        pack_name: products?.find((p) => p.code === pack.packId)?.name,
         products: [
           {
-            product: products?.find((p) => p.code === pack.productId),
             qty: pack.qty,
+            name: product1?.name,
+            code: product1?.code,
+            sales_price: product1?.sales_price,
+            cost_price: product1?.cost_price,
           },
         ],
       });
     } else {
+      const product2 = products?.find((p) => p.code === pack.productId);
       packsList[packIndex].products.push({
-        product: products?.find((p) => p.code === pack.productId),
         qty: pack.qty,
+        name: product2?.name,
+        code: product2?.code,
+        sales_price: product2?.sales_price,
+        cost_price: product2?.cost_price,
       });
     }
   });
