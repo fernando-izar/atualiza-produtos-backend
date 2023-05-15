@@ -2,6 +2,7 @@ import { IProduct, IProductValidated } from "../interfaces/products";
 import AppDataSource from "../data-source";
 import { Products } from "../entities/product.entity";
 import { Packs } from "../entities/pack.entity";
+import { IPack } from "../interfaces/packs";
 
 const updateProductsService = async (
   productsToUpdate: IProduct[]
@@ -19,19 +20,6 @@ const updateProductsService = async (
     if (productFound && productToUpdate.new_sales_price) {
       const packFound = packs.find((pack) => pack.packId === productFound.code);
       if (!packFound) {
-        // const packsToUpdate = packs.filter(
-        //   (pack) => pack.productId === productFound.code
-        // );
-        // packsToUpdate.forEach((pack) => {
-        //   products.map((product) => {
-        //     if (product.code === pack.packId) {
-        //       product.sales_price -= productFound.sales_price * pack.qty;
-        //       product.sales_price +=
-        //         productToUpdate.new_sales_price! * pack.qty;
-        //       productRepository.save(product);
-        //     }
-        //   });
-        // });
         productFound.sales_price = productToUpdate.new_sales_price;
         productRepository.save(productFound);
         productToUpdate.sales_price = productToUpdate.new_sales_price;
@@ -58,6 +46,8 @@ const updateProductsService = async (
 
     if (productFound) return productFound;
 
+    packs.forEach((pack) => {});
+
     return productToUpdate;
   });
 
@@ -74,7 +64,53 @@ const updateProductsService = async (
     };
   });
 
-  return productsRequest;
+  const packsList: IPack[] = [];
+  packs.forEach((pack) => {
+    const packIndex = packsList.findIndex((p) => p.id === pack.packId);
+    if (packIndex === -1) {
+      const product1 = products?.find((p) => p.code === pack.productId);
+      packsList.push({
+        id: pack.packId,
+        pack_name: products?.find((p) => p.code === pack.packId)?.name,
+        products: [
+          {
+            qty: pack.qty,
+            name: product1?.name,
+            code: product1?.code,
+            sales_price: product1?.sales_price,
+            cost_price: product1?.cost_price,
+          },
+        ],
+      });
+    } else {
+      const product2 = products?.find((p) => p.code === pack.productId);
+      packsList[packIndex].products.push({
+        qty: pack.qty,
+        name: product2?.name,
+        code: product2?.code,
+        sales_price: product2?.sales_price,
+        cost_price: product2?.cost_price,
+      });
+    }
+  });
+
+  packsList.forEach((pack) => {
+    const productFound = productsUpdatedToRequest.find(
+      (product) => product.code === pack.id
+    );
+    if (productFound) {
+      productFound.sales_price = pack.products.reduce(
+        (acc, product) => acc + product.sales_price! * product.qty!,
+        0
+      );
+      productRepositoryUpdated.save(productFound);
+    }
+  });
+
+  const productsResponse = AppDataSource.getRepository(Products);
+  const productsResponseToRequest = await productsResponse.find();
+
+  return productsResponseToRequest;
 };
 
 export default updateProductsService;

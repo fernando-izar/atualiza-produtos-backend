@@ -39,6 +39,7 @@ const listPacksService = async (): Promise<IPack[]> => {
       });
     }
   });
+  console.log("packsList", packsList);
   return packsList;
 };
 
