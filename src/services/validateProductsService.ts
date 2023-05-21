@@ -1,12 +1,15 @@
 import { IProduct, IProductValidated } from "../interfaces/products";
 import AppDataSource from "../data-source";
 import { Products } from "../entities/product.entity";
+import { Packs } from "../entities/pack.entity";
 
 const validateProductsService = async (
   productsToValidate: IProduct[]
 ): Promise<IProductValidated[]> => {
   const productRepository = AppDataSource.getRepository(Products);
   const products = await productRepository.find();
+  const packRepository = AppDataSource.getRepository(Packs);
+  const packs = await packRepository.find();
 
   const productsValidated: IProductValidated[] = productsToValidate.map(
     (productToValidate) => {
@@ -61,6 +64,38 @@ const validateProductsService = async (
         productValidated.broken_rules.push(
           "Preço de venda fora da margem de 10%"
         );
+      }
+
+      if (packs.find((pack) => pack.packId === productToValidate.code)) {
+        const productsInPack = packs
+          .filter((pack) => pack.packId === productToValidate.code)
+          .map((pack) => {
+            return {
+              id: pack.productId,
+              qty: pack.qty,
+            };
+          });
+        const packTotalPrice: number = productsInPack.reduce(
+          (acc, productObj) => {
+            const product = productsToValidate.find(
+              (product) => product.code === productObj.id
+            );
+            if (!product || !product.new_sales_price) {
+              return acc;
+            }
+            const newPrice =
+              +product.new_sales_price.toFixed(2) * productObj.qty;
+            return acc + newPrice;
+          },
+          0
+        );
+        const price = +packTotalPrice.toFixed(2);
+        if (price !== +productToValidate.new_sales_price) {
+          productValidated.is_validated = false;
+          productValidated.broken_rules.push(
+            `Preço de venda do kit não confere com a soma dos produtos. Valor do kit: ${price}`
+          );
+        }
       }
 
       return productValidated;
