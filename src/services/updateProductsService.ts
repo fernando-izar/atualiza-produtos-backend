@@ -22,8 +22,9 @@ const updateProductsService = async (
       productToUpdate.new_sales_price !== productToUpdate.sales_price
     ) {
       productFound.sales_price = productToUpdate.new_sales_price;
-      productRepository.save(productFound);
+      console.log("productFound", productFound);
       productToUpdate.sales_price = productToUpdate.new_sales_price;
+      console.log("productToUpdate", productToUpdate);
     }
 
     return productToUpdate;
@@ -33,6 +34,7 @@ const updateProductsService = async (
     return [];
   }
 
+  productRepository.save(productsUpdated);
   return productsUpdated;
 
   // const productRepositoryUpdated = AppDataSource.getRepository(Products);
