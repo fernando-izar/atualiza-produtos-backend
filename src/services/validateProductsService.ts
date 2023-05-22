@@ -57,12 +57,16 @@ const validateProductsService = async (
       }
 
       if (
-        productToValidate.new_sales_price < productFound.sales_price * 0.9 ||
-        productToValidate.new_sales_price > productFound.sales_price * 1.1
+        productToValidate.new_sales_price <
+          +(productFound.sales_price * 0.9).toFixed(2) ||
+        productToValidate.new_sales_price >
+          +(productFound.sales_price * 1.1).toFixed(2)
       ) {
         productValidated.is_validated = false;
         productValidated.broken_rules.push(
-          "Preço de venda fora da margem de 10%"
+          `Preço de venda fora da margem de 10%. Mínimo: ${+(
+            productFound.sales_price * 0.9
+          ).toFixed(2)} Máximo: ${+(productFound.sales_price * 1.1).toFixed(2)}`
         );
       }
 
