@@ -28,7 +28,7 @@ const updateProductsService = async (
     return [];
   }
 
-  productRepository.save(productsUpdated);
+  await productRepository.save(productsUpdated);
   return productsUpdated;
 };
 
