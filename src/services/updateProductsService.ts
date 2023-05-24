@@ -12,39 +12,47 @@ const updateProductsService = async (
   const packRepository = AppDataSource.getRepository(Packs);
   const packs = await packRepository.find();
 
-  const productsUpdated = productsToUpdate.map(async (productToUpdate) => {
-    const productFound = products.find(
-      (product) => product.code === productToUpdate.code
-    );
+  const productsUpdated = await Promise.all(
+    productsToUpdate.map(async (productToUpdate) => {
+      const productFound = products.find(
+        (product) => product.code === productToUpdate.code
+      );
 
-    if (productFound && productToUpdate.new_sales_price) {
-      const packFound = packs.find((pack) => pack.packId === productFound.code);
-      if (!packFound) {
-        productFound.sales_price = productToUpdate.new_sales_price;
-        await productRepository.save(productFound);
-        productToUpdate.sales_price = productToUpdate.new_sales_price;
-      } else {
-        const ratio =
-          productToUpdate.new_sales_price / productFound.sales_price;
-        const producstInPack = packs
-          .filter((pack) => pack.packId === productFound.code)
-          .map((pack) =>
-            products.find((product) => product.code === pack.productId)
-          );
-        producstInPack.forEach(async (productInPack) => {
-          if (productInPack) {
-            productInPack.sales_price *= ratio;
-            await productRepository.save(productInPack);
-            productToUpdate.sales_price *= ratio;
-          }
-        });
-        productFound.sales_price = productToUpdate.new_sales_price;
-        await productRepository.save(productFound);
-        productToUpdate.sales_price = productToUpdate.new_sales_price;
+      if (productFound && productToUpdate.new_sales_price) {
+        const packFound = packs.find(
+          (pack) => pack.packId === productFound.code
+        );
+        if (!packFound) {
+          productFound.sales_price = productToUpdate.new_sales_price;
+          await productRepository.save(productFound);
+          productToUpdate.sales_price = productToUpdate.new_sales_price;
+        } else {
+          const ratio =
+            productToUpdate.new_sales_price / productFound.sales_price;
+          const producstInPack = packs
+            .filter((pack) => pack.packId === productFound.code)
+            .map((pack) =>
+              products.find((product) => product.code === pack.productId)
+            );
+          producstInPack.forEach(async (productInPack) => {
+            if (productInPack) {
+              productInPack.sales_price = +(
+                productInPack.sales_price * ratio
+              ).toFixed(2);
+              await productRepository.save(productInPack);
+              productToUpdate.sales_price = +(
+                productToUpdate.sales_price * ratio
+              ).toFixed(2);
+            }
+          });
+          productFound.sales_price = productToUpdate.new_sales_price;
+          await productRepository.save(productFound);
+          productToUpdate.sales_price = productToUpdate.new_sales_price;
+        }
       }
-    }
-    return productToUpdate;
-  });
+      return productToUpdate;
+    })
+  );
 
   if (!productsUpdated) {
     return [];
@@ -80,19 +88,22 @@ const updateProductsService = async (
     }
   });
 
-  packsList.forEach(async (pack) => {
-    const productFound = productsToUpdate.find(
-      (product) => product.code === pack.id
-    );
-    if (productFound) {
-      productFound.sales_price = pack.products.reduce(
-        (acc, product) => acc + product.sales_price! * product.qty!,
-        0
+  const updatePacks = async (packsList: IPack[]) => {
+    packsList.forEach(async (pack) => {
+      const productFound = productsToUpdate.find(
+        (product) => product.code === pack.id
       );
-      await productRepository.save(productFound);
-    }
-  });
-  await new Promise((resolve) => setTimeout(resolve, 500));
+      if (productFound) {
+        productFound.sales_price = pack.products.reduce(
+          (acc, product) => acc + product.sales_price! * product.qty!,
+          0
+        );
+        await productRepository.save(productFound);
+      }
+    });
+  };
+
+  await updatePacks(packsList);
 
   const productsResponse = AppDataSource.getRepository(Products);
   const productsResponseToRequest = await productsResponse.find();

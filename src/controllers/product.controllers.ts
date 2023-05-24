@@ -35,7 +35,7 @@ export const updateProductsController = async (req: Request, res: Response) => {
     const productsUpdated: IProduct[] = await updateProductsService(
       productsToUpdate
     );
-    const products = productsToUpdate.map((product) => {
+    const products = productsUpdated.map((product) => {
       return {
         ...product,
         new_sales_price: product.sales_price,
