@@ -12,7 +12,7 @@ const updateProductsService = async (
   const packRepository = AppDataSource.getRepository(Packs);
   const packs = await packRepository.find();
 
-  const productsUpdated = productsToUpdate.map((productToUpdate) => {
+  const productsUpdated = productsToUpdate.map(async (productToUpdate) => {
     const productFound = products.find(
       (product) => product.code === productToUpdate.code
     );
@@ -21,7 +21,7 @@ const updateProductsService = async (
       const packFound = packs.find((pack) => pack.packId === productFound.code);
       if (!packFound) {
         productFound.sales_price = productToUpdate.new_sales_price;
-        productRepository.save(productFound);
+        await productRepository.save(productFound);
         productToUpdate.sales_price = productToUpdate.new_sales_price;
       } else {
         const ratio =
@@ -31,36 +31,24 @@ const updateProductsService = async (
           .map((pack) =>
             products.find((product) => product.code === pack.productId)
           );
-        producstInPack.forEach((productInPack) => {
+        producstInPack.forEach(async (productInPack) => {
           if (productInPack) {
             productInPack.sales_price *= ratio;
-            productRepository.save(productInPack);
+            await productRepository.save(productInPack);
             productToUpdate.sales_price *= ratio;
           }
         });
         productFound.sales_price = productToUpdate.new_sales_price;
-        productRepository.save(productFound);
+        await productRepository.save(productFound);
         productToUpdate.sales_price = productToUpdate.new_sales_price;
       }
     }
-
-    // if (productFound) return productFound;
-    // packs.forEach((pack) => {});
     return productToUpdate;
   });
 
   if (!productsUpdated) {
     return [];
   }
-
-  // const productRepositoryUpdated = AppDataSource.getRepository(Products);
-  // const productsUpdatedToRequest = await productRepositoryUpdated.find();
-  // const productsRequest = productsUpdatedToRequest.map((product) => {
-  //   return {
-  //     ...product,
-  //     new_sales_price: product.sales_price,
-  //   };
-  // });
 
   const packsList: IPack[] = [];
   packs.forEach((pack) => {
@@ -92,7 +80,7 @@ const updateProductsService = async (
     }
   });
 
-  packsList.forEach((pack) => {
+  packsList.forEach(async (pack) => {
     const productFound = productsToUpdate.find(
       (product) => product.code === pack.id
     );
@@ -101,7 +89,7 @@ const updateProductsService = async (
         (acc, product) => acc + product.sales_price! * product.qty!,
         0
       );
-      productRepository.save(productFound);
+      await productRepository.save(productFound);
     }
   });
   await new Promise((resolve) => setTimeout(resolve, 500));
