@@ -5,7 +5,6 @@ import { Products } from "../entities/product.entity";
 const listProductsService = async (): Promise<IProduct[]> => {
   const productRepository = AppDataSource.getRepository(Products);
   const products = await productRepository.find();
-  console.log(products);
   products.map((product) => {
     product.cost_price = +product.cost_price;
     product.sales_price = +product.sales_price;
